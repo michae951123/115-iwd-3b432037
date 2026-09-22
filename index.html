@@ -3,9 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人介紹 | 張竣彥</title>
+    <title>張竣彥的個人網站</title>
     <style>
-        /* 全局樣式重置與字體設定 */
+        :root {
+            --primary-color: #1976d2;
+            --primary-hover: #135ba1;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --header-bg: #2c3e50;
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -13,139 +24,460 @@
         }
 
         body {
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            font-family: "PingFang TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            color: #ffffff;
+            padding: 1.2rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        nav ul {
+            list-style: none;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        /* 個人卡片容器 */
-        .profile-card {
-            background-color: #ffffff;
-            width: 100%;
-            max-width: 450px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
+        .nav-btn {
+            background: transparent;
+            border: 2px solid transparent;
+            color: #ecf0f1;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+
+        .nav-btn.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.4);
+        }
+
+        /* Mode Toggle Toolbar */
+        .view-mode-bar {
             text-align: center;
-            padding: 30px 20px;
-            transition: transform 0.3s ease;
+            margin-top: 20px;
         }
 
-        .profile-card:hover {
-            transform: translateY(-5px);
-        }
-
-        /* 大頭貼區域 */
-        .avatar-container {
-            width: 130px;
-            height: 130px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 4px solid #eef2f5;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .avatar-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* 姓名與身分標籤 */
-        .name {
-            font-size: 1.8rem;
+        .view-mode-btn {
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
             font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        .tag-container {
+        .view-mode-btn:hover {
+            background-color: #cbd5e1;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+
+            /* Flexbox 橫向排列設定 */
+            display: flex;
+            flex-direction: row;        /* 大螢幕橫向排列 */
+            justify-content: center;    /* 水平置中對齊 */
+            align-items: stretch;       /* 高度自動齊平 */
+            gap: 16px;                  /* 卡片間距 16px */
+        }
+
+        .page-tab {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 28px 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            animation: fadeIn var(--transition-speed) ease-in-out;
+            
+            /* 分頁卡片彈性尺寸 */
+            flex: 1 1 300px;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* 在單頁切換模式下，非 active 的分頁隱藏 */
+        main.tab-mode .page-tab {
+            display: none;
+        }
+
+        main.tab-mode .page-tab.active {
+            display: flex;
+            max-width: 500px; /* 單獨顯示時調寬些許提升閱讀體驗 */
+        }
+
+        /* 淡入效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 區塊標題通用樣式 */
+        .section-title {
+            color: var(--header-bg);
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary-color);
+            text-align: center;
+        }
+
+        /* --- 1. 目錄區塊 --- */
+        .directory-desc {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .directory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dir-item {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 14px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dir-item:hover {
+            transform: translateX(4px);
+            background-color: #eef6fc;
+        }
+
+        .dir-item h3 {
+            color: var(--primary-color);
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+
+        .dir-item p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* --- 2. 個人自介區塊 --- */
+        .profile-container {
+            text-align: center;
+        }
+
+        .avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px solid var(--primary-color);
+            margin: 0 auto 15px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .tags {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 6px;
+            margin: 12px 0 16px;
             flex-wrap: wrap;
         }
 
         .tag {
             background-color: #e3f2fd;
-            color: #1976d2;
-            font-size: 0.85rem;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 500;
+            color: var(--primary-color);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
-        /* 自我介紹區域 */
-        .bio {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #555;
+        .bio-text {
             text-align: justify;
             background-color: #fafafa;
-            padding: 15px;
+            padding: 16px;
             border-radius: 8px;
-            border-left: 4px solid #1976d2;
-            margin-bottom: 20px;
-        }
-
-        /* 社群與聯絡按鈕 */
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .btn {
-            text-decoration: none;
-            color: #fff;
-            background-color: #333;
-            padding: 8px 16px;
-            border-radius: 6px;
             font-size: 0.9rem;
-            transition: background-color 0.2s ease;
+            color: #444;
+            line-height: 1.6;
         }
 
-        .btn:hover {
-            background-color: #555;
+        /* --- 3. 聯絡我表單區塊 --- */
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 2px;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 24px 20px;
+            color: #888888;
+            font-size: 0.85rem;
+            background-color: #eaeef1;
+            margin-top: auto;
+        }
+
+        /* ===================================================
+           Media Query: 當螢幕寬度小於 768px 時切換為直向堆疊
+           =================================================== */
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;   /* 改為直向堆疊 */
+                align-items: center;       /* 水平置中對齊 */
+                gap: 16px;                 /* 間距保持 16px */
+                margin: 20px auto;
+            }
+
+            .page-tab {
+                width: 100%;               /* 寬度設為 100% */
+                max-width: 100%;           /* 充滿整個可用空間 */
+            }
+
+            main.tab-mode .page-tab.active {
+                max-width: 100%;
+            }
+
+            header h1 {
+                font-size: 1.35rem;
+            }
+
+            .nav-btn {
+                padding: 6px 14px;
+                font-size: 0.88rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="profile-card">
-        <!-- 1. 大頭貼區域 -->
-        <div class="avatar-container">
-            <!-- 替換成你的照片檔名，例如 "profile.jpg" -->
-            <img src="https://via.placeholder.com/150" alt="張竣彥的大頭貼">
-        </div>
+    <!-- 頂部導覽列 -->
+    <header>
+        <h1>張竣彥的個人網站</h1>
+        <nav aria-label="主要選單">
+            <ul>
+                <li><button class="nav-btn active" id="btn-all" onclick="switchTab('all')">顯示全部</button></li>
+                <li><button class="nav-btn" id="btn-directory" onclick="switchTab('directory')">網站目錄</button></li>
+                <li><button class="nav-btn" id="btn-about" onclick="switchTab('about')">個人自介</button></li>
+                <li><button class="nav-btn" id="btn-contact" onclick="switchTab('contact')">聯絡我</button></li>
+            </ul>
+        </nav>
+    </header>
 
-        <!-- 2. 姓名與標籤區域 -->
-        <h1 class="name">張竣彥</h1>
-        <div class="tag-container">
-            <span class="tag">🎓 勤益科技大學</span>
-            <span class="tag">資訊管理系</span>
-            <span class="tag">大二生</span>
-        </div>
+    <!-- 主要內容區域 (預設為全顯模式，也可經由選單切換分頁) -->
+    <main id="main-container">
+        
+        <!-- 分頁一：網站目錄 -->
+        <section id="tab-directory" class="page-tab active">
+            <div>
+                <h2 class="section-title">📌 網站目錄</h2>
+                <p class="directory-desc">歡迎光臨！請選擇欲瀏覽的專區：</p>
 
-        <!-- 3. 自我介紹文字區域 -->
-        <div class="bio">
-            <p>你好！我是張竣彥，目前就讀國立勤益科技大學資訊管理系二年級。</p>
-        </div>
+                <div class="directory-list">
+                    <div class="dir-item" onclick="switchTab('about')">
+                        <h3>🙋‍♂️ 個人自介</h3>
+                        <p>查看學歷背景、專業技能與經歷。</p>
+                    </div>
 
-        <!-- 4. 聯絡連結 -->
-        <div class="social-links">
-            <a href="#" class="btn">GitHub</a>
-            <a href="#" class="btn">Instagram</a>
-            <a href="mailto:your-email@gmail.com" class="btn">Email</a>
-        </div>
-    </div>
+                    <div class="dir-item" onclick="switchTab('contact')">
+                        <h3>📬 聯絡我 / 活動報名</h3>
+                        <p>填寫報名表單或留下聯繫訊息。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
+        <!-- 分頁二：個人自介 -->
+        <section id="tab-about" class="page-tab active">
+            <div class="profile-container">
+                <h2 class="section-title">🙋‍♂️ 個人自介</h2>
+                <img src="https://placehold.co/150x150/1976d2/ffffff?text=張竣彥" alt="張竣彥的大頭貼" class="avatar" onerror="this.src='https://placehold.co/150x150/1976d2/ffffff?text=User'">
+                <h3>張竣彥</h3>
+
+                <div class="tags">
+                    <span class="tag">🎓 勤益科技大學</span>
+                    <span class="tag">資訊管理系</span>
+                    <span class="tag">大二生</span>
+                </div>
+
+                <div class="bio-text">
+                    <p>你好！我是張竣彥，目前就讀國立勤益科技大學資訊管理系二年級。平時熱衷於學習網頁前端開發、軟體系統設計與資訊整合，喜歡透過程式邏輯解決實際生活中的問題。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 分頁三：聯絡我 / 活動報名表單 -->
+        <section id="tab-contact" class="page-tab active">
+            <div>
+                <h2 class="section-title">📬 聯絡我 / 活動報名</h2>
+                <form action="#" method="POST" onsubmit="handleFormSubmit(event)">
+                    <!-- 姓名 (必填) -->
+                    <div class="form-group">
+                        <label for="userName">姓名<span class="required">*</span></label>
+                        <input type="text" id="userName" name="userName" placeholder="請輸入您的姓名" required>
+                    </div>
+
+                    <!-- Email (必填) -->
+                    <div class="form-group">
+                        <label for="userEmail">Email<span class="required">*</span></label>
+                        <input type="email" id="userEmail" name="userEmail" placeholder="example@gmail.com" required>
+                    </div>
+
+                    <!-- 報名場次 (下拉選單) -->
+                    <div class="form-group">
+                        <label for="sessionSelect">報名場次 / 諮詢項目</label>
+                        <select id="sessionSelect" name="sessionSelect">
+                            <option value="session1">第一場：網頁前端開發入門 (10/12)</option>
+                            <option value="session2">第二場：資管專題經驗分享 (10/19)</option>
+                            <option value="session3">第三場：Git 與 GitHub 實作工作坊 (10/26)</option>
+                            <option value="general">一般訊息諮詢</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="submit-btn">送出報名資料</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer>
+        <p>&copy; 2026 張竣彥. All rights reserved.</p>
+    </footer>
+
+    <script>
+        /**
+         * 切換分頁顯示邏輯
+         * @param {string} targetTab - 目標分頁識別碼 ('all', 'directory', 'about', 'contact')
+         */
+        function switchTab(targetTab) {
+            const mainContainer = document.getElementById('main-container');
+            const tabs = document.querySelectorAll('.page-tab');
+            const buttons = document.querySelectorAll('.nav-btn');
+
+            // 重置按鈕選取樣式
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (targetTab === 'all') {
+                // 全顯模式
+                mainContainer.classList.remove('tab-mode');
+                tabs.forEach(tab => tab.classList.add('active'));
+                document.getElementById('btn-all').classList.add('active');
+            } else {
+                // 單一分頁切換模式
+                mainContainer.classList.add('tab-mode');
+                tabs.forEach(tab => tab.classList.remove('active'));
+
+                const selectedTab = document.getElementById(`tab-${targetTab}`);
+                if (selectedTab) {
+                    selectedTab.classList.add('active');
+                }
+
+                const selectedBtn = document.getElementById(`btn-${targetTab}`);
+                if (selectedBtn) {
+                    selectedBtn.classList.add('active');
+                }
+            }
+        }
+
+        /**
+         * 表單送出處理解理
+         */
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('userName').value;
+            alert(`感謝 ${name} 的填寫！報名資料已順利送出。`);
+            event.target.reset();
+        }
+    </script>
 </body>
 </html>
