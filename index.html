@@ -15,6 +15,7 @@
             --header-bg: #2c3e50;
             --border-radius: 12px;
             --transition-speed: 0.3s;
+            --error-color: #e74c3c;
         }
 
         * {
@@ -81,28 +82,6 @@
             color: #ffffff;
             border-color: var(--primary-color);
             box-shadow: 0 2px 8px rgba(25, 118, 210, 0.4);
-        }
-
-        /* Mode Toggle Toolbar */
-        .view-mode-bar {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .view-mode-btn {
-            background-color: #e2e8f0;
-            color: #475569;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .view-mode-btn:hover {
-            background-color: #cbd5e1;
         }
 
         main {
@@ -257,7 +236,7 @@
         }
 
         .required {
-            color: #e74c3c;
+            color: var(--error-color);
             margin-left: 2px;
         }
 
@@ -278,6 +257,20 @@
             box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
         }
 
+        /* 格式錯誤時的外框樣式 */
+        .form-group input.invalid-input {
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
+        }
+
+        /* 紅字錯誤提示訊息樣式 */
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: none; /* 預設隱藏 */
+        }
+
         .submit-btn {
             width: 100%;
             background-color: var(--primary-color);
@@ -296,6 +289,13 @@
             background-color: var(--primary-hover);
         }
 
+        /* 按鈕禁用樣式 */
+        .submit-btn:disabled {
+            background-color: #9e9e9e !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -306,20 +306,18 @@
             margin-top: auto;
         }
 
-        /* ===================================================
-           Media Query: 當螢幕寬度小於 768px 時切換為直向堆疊
-           =================================================== */
+        /* RWD 響應式 */
         @media (max-width: 768px) {
             main {
-                flex-direction: column;   /* 改為直向堆疊 */
-                align-items: center;       /* 水平置中對齊 */
-                gap: 16px;                 /* 間距保持 16px */
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
                 margin: 20px auto;
             }
 
             .page-tab {
-                width: 100%;               /* 寬度設為 100% */
-                max-width: 100%;           /* 充滿整個可用空間 */
+                width: 100%;
+                max-width: 100%;
             }
 
             main.tab-mode .page-tab.active {
@@ -352,7 +350,7 @@
         </nav>
     </header>
 
-    <!-- 主要內容區域 (預設為全顯模式，也可經由選單切換分頁) -->
+    <!-- 主要內容區域 -->
     <main id="main-container">
         
         <!-- 分頁一：網站目錄 -->
@@ -405,13 +403,14 @@
                         <input type="text" id="userName" name="userName" placeholder="請輸入您的姓名" required>
                     </div>
 
-                    <!-- Email (必填) -->
+                    <!-- Email (必填，含即時驗證) -->
                     <div class="form-group">
                         <label for="userEmail">Email<span class="required">*</span></label>
-                        <input type="email" id="userEmail" name="userEmail" placeholder="example@gmail.com" required>
+                        <input type="email" id="userEmail" name="userEmail" placeholder="example@gmail.com" required oninput="validateEmail()">
+                        <div id="emailError" class="error-message">⚠️ 請輸入有效的 Email 格式（例如：user@example.com）</div>
                     </div>
 
-                    <!-- 報名場次 (下拉選單) -->
+                    <!-- 報名場次 -->
                     <div class="form-group">
                         <label for="sessionSelect">報名場次 / 諮詢項目</label>
                         <select id="sessionSelect" name="sessionSelect">
@@ -422,7 +421,7 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="submit-btn">送出報名資料</button>
+                    <button type="submit" id="submitBtn" class="submit-btn">送出報名資料</button>
                 </form>
             </div>
         </section>
@@ -437,23 +436,19 @@
     <script>
         /**
          * 切換分頁顯示邏輯
-         * @param {string} targetTab - 目標分頁識別碼 ('all', 'directory', 'about', 'contact')
          */
         function switchTab(targetTab) {
             const mainContainer = document.getElementById('main-container');
             const tabs = document.querySelectorAll('.page-tab');
             const buttons = document.querySelectorAll('.nav-btn');
 
-            // 重置按鈕選取樣式
             buttons.forEach(btn => btn.classList.remove('active'));
 
             if (targetTab === 'all') {
-                // 全顯模式
                 mainContainer.classList.remove('tab-mode');
                 tabs.forEach(tab => tab.classList.add('active'));
                 document.getElementById('btn-all').classList.add('active');
             } else {
-                // 單一分頁切換模式
                 mainContainer.classList.add('tab-mode');
                 tabs.forEach(tab => tab.classList.remove('active'));
 
@@ -470,13 +465,59 @@
         }
 
         /**
+         * Email 即時格式驗證函式
+         */
+        function validateEmail() {
+            const emailInput = document.getElementById('userEmail');
+            const emailError = document.getElementById('emailError');
+            const value = emailInput.value.trim();
+
+            // 正規表達式（檢查標準 Email 格式）
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (value === '') {
+                // 空值時恢復原狀（由表單 HTML5 的 required 控制）
+                emailError.style.display = 'none';
+                emailInput.classList.remove('invalid-input');
+                return true;
+            }
+
+            if (!emailRegex.test(value)) {
+                // 格式不正確：顯示紅字提示、框線變紅
+                emailError.style.display = 'block';
+                emailInput.classList.add('invalid-input');
+                return false;
+            } else {
+                // 格式正確：隱藏提示、恢復框線
+                emailError.style.display = 'none';
+                emailInput.classList.remove('invalid-input');
+                return true;
+            }
+        }
+
+        /**
          * 表單送出處理解理
          */
         function handleFormSubmit(event) {
             event.preventDefault();
+
+            // 送出前先再驗證一次 Email
+            if (!validateEmail()) {
+                document.getElementById('userEmail').focus();
+                return;
+            }
+
             const name = document.getElementById('userName').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            // 1. 修改按鈕文字為「已送出」
+            submitBtn.innerText = '已送出';
+
+            // 2. 禁用按鈕（改為灰色且不能再次點擊）
+            submitBtn.disabled = true;
+
+            // 提示訊息
             alert(`感謝 ${name} 的填寫！報名資料已順利送出。`);
-            event.target.reset();
         }
     </script>
 </body>
